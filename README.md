@@ -8,6 +8,8 @@
 ![No Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen?style=flat-square)
 ![Single File](https://img.shields.io/badge/bundle-1%20file-blue?style=flat-square)
 
+![chessmaster](assets/chessmaster.png)
+
 ---
 
 ## Overview
