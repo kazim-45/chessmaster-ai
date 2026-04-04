@@ -6,141 +6,354 @@
 <title>ChessMaster AI</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;width:100%;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0}
+html,body{height:100%;width:100%;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;background:#1e1e2e;color:#cdd6f4}
+
+/* ── Layout ─────────────────────────────────────────────── */
 #app{display:flex;flex-direction:column;height:100%;width:100%}
-header{background:#16213e;padding:8px 16px;display:flex;align-items:center;gap:8px;border-bottom:2px solid #0f3460;flex-shrink:0}
-header h1{font-size:1.1rem;background:linear-gradient(90deg,#e94560,#0f3460);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.main{display:flex;flex:1;overflow:hidden;gap:8px;padding:8px}
-.board-area{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.eval-bar{width:20px;border-radius:10px;background:#333;overflow:hidden;position:relative;border:1px solid #444}
-.eval-fill{position:absolute;bottom:0;width:100%;background:linear-gradient(to top,#eee,#aaa);height:50%;transition:height .4s}
-.eval-num{font-size:.65rem;color:#aaa;text-align:center;margin-top:4px}
-#board{display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);border-radius:4px;overflow:hidden;border:2px solid #0f3460}
-.sq{display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;user-select:none;-webkit-user-select:none}
-.sq.light{background:#f0d9b5}.sq.dark{background:#b58863}
-.sq.selected{background:#7b61ff!important}
-.sq.last{background:rgba(255,255,100,.35)!important}
-.sq.check{background:radial-gradient(circle,#ff000088,#ff000022)!important}
-.sq.can-move::after{content:'';position:absolute;width:25%;height:25%;background:rgba(0,0,0,.25);border-radius:50%}
-.sq.can-capture::after{content:'';position:absolute;inset:6%;border:3px solid rgba(0,0,0,.3);border-radius:50%}
-.piece{font-size:min(6vw,52px);line-height:1;pointer-events:none}
-/* White pieces: bright white with strong black shadow */
-.piece-w{
-  color:#ffffff;
-  text-shadow:0 0 3px #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 2px 4px rgba(0,0,0,0.8);
-  filter:drop-shadow(0 1px 3px #000);
+header{
+  background:#181825;
+  padding:10px 20px;
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid #313244;
+  flex-shrink:0;
+  box-shadow:0 2px 12px rgba(0,0,0,.4);
 }
-/* Black pieces: rich dark with subtle white outline for visibility */
-.piece-b{
-  color:#1c1008;
-  text-shadow:0 0 2px rgba(255,255,255,0.6),-1px -1px 0 rgba(255,255,255,0.3),1px -1px 0 rgba(255,255,255,0.3),-1px 1px 0 rgba(255,255,255,0.3),1px 1px 0 rgba(255,255,255,0.3);
-  filter:drop-shadow(0 1px 2px rgba(0,0,0,0.9));
+header h1{
+  font-size:1rem;font-weight:700;letter-spacing:.5px;
+  color:#cdd6f4;
 }
-.side-panel{flex:1;display:flex;flex-direction:column;gap:6px;min-width:160px;overflow:hidden}
-.card{background:#16213e;border:1px solid #0f3460;border-radius:8px;padding:8px;flex-shrink:0}
-.card h3{font-size:.7rem;text-transform:uppercase;color:#e94560;margin-bottom:4px;letter-spacing:.5px}
-#status{font-size:.8rem;color:#ccc}
-#opening{font-size:.75rem;color:#53a8b6;min-height:1rem;font-style:italic}
-.move-list{flex:1;overflow-y:auto;min-height:0}
-.move-list-inner{font-size:.72rem;font-family:'Courier New',monospace}
-.mrow{display:flex;padding:2px 0;gap:3px}
-.mrow:nth-child(odd){background:rgba(255,255,255,.03)}
-.mnum{color:#666;min-width:22px;text-align:right}
-.mv{padding:1px 4px;border-radius:3px;cursor:pointer;min-width:44px}
-.mv:hover{background:#0f3460}
-.mv.active{background:#e94560;color:#fff}
-.controls{display:flex;flex-wrap:wrap;gap:4px}
-.controls button{flex:1;min-width:50px;padding:6px 2px;background:#0f3460;color:#ccc;border:1px solid #1a4080;border-radius:4px;font-size:.68rem;cursor:pointer}
-.controls button:hover{background:#1a4080}
-.controls select{flex:1;padding:5px;background:#0f3460;color:#ccc;border:1px solid #1a4080;border-radius:4px;font-size:.68rem}
-.captured{font-size:.8rem;min-height:1.2rem;letter-spacing:1px}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:99}
-.modal{background:#16213e;border:2px solid #e94560;border-radius:12px;padding:20px;text-align:center;min-width:220px}
-.modal h2{margin-bottom:12px;font-size:1.1rem}
-.modal p{margin-bottom:16px;color:#aaa;font-size:.85rem}
-.promo-btns{display:flex;gap:8px;justify-content:center}
-.promo-btns button{font-size:1.8rem;padding:8px 14px;background:#0f3460;border:2px solid #1a4080;border-radius:8px;cursor:pointer;color:#fff}
-.promo-btns button:hover{border-color:#e94560}
-.modal button.primary{background:linear-gradient(135deg,#e94560,#0f3460);border:none;color:#fff;padding:10px 24px;border-radius:8px;font-size:.9rem;cursor:pointer;font-weight:600}
-.hidden{display:none!important}
-/* Thinking indicator */
-.thinking-dots{display:inline-block;color:#e94560}
-.thinking-dots span{animation:blink 1.2s infinite}
+header h1 span{color:#89b4fa}
+.main{display:flex;flex:1;overflow:hidden;gap:12px;padding:10px}
+
+/* ── Board Area ──────────────────────────────────────────── */
+.board-area{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+/* Eval bar */
+.eval-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
+.eval-bar{
+  width:18px;border-radius:9px;
+  background:#313244;
+  overflow:hidden;position:relative;
+  border:1px solid #45475a;
+  flex-shrink:0;
+}
+.eval-fill{
+  position:absolute;bottom:0;width:100%;
+  background:linear-gradient(to top,#cdd6f4,#a6adc8);
+  height:50%;transition:height .5s cubic-bezier(.4,0,.2,1);
+}
+.eval-num{font-size:.6rem;color:#6c7086;font-weight:600;letter-spacing:.3px}
+
+/* Board wrapper — for shadow + coordinates */
+.board-wrap{
+  position:relative;
+  border-radius:4px;
+  padding:3px;
+  background:#3a0a0a;
+  box-shadow:0 16px 56px rgba(0,0,0,.75),0 4px 16px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.06);
+}
+#board{
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  grid-template-rows:repeat(8,1fr);
+  border-radius:2px;
+  overflow:hidden;
+}
+
+/* ── Squares ─────────────────────────────────────────────── */
+.sq{
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  position:relative;
+  user-select:none;-webkit-user-select:none;
+  overflow:hidden;
+}
+/* Maroon + cream — classic wooden board */
+.sq.light{background:#f0e4ce}
+.sq.dark {background:#6d1313}
+
+/* Selection — golden */
+.sq.selected{background:#f6c94e!important}
+.sq.selected.dark{background:#d4a828!important}
+
+/* Last move highlight */
+.sq.last-from::before,.sq.last-to::before{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,210,80,.38);
+  pointer-events:none;z-index:1;
+}
+
+/* Check — pulsing red radial */
+.sq.check::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at center,rgba(220,20,20,.72) 0%,rgba(220,20,20,.0) 72%);
+  pointer-events:none;z-index:1;
+  animation:checkPulse .8s ease-in-out infinite alternate;
+}
+@keyframes checkPulse{from{opacity:.45}to{opacity:1}}
+
+/* Legal move dots */
+.sq.can-move::after{
+  content:'';position:absolute;
+  width:30%;height:30%;
+  background:rgba(0,0,0,.2);
+  border-radius:50%;
+  z-index:2;pointer-events:none;
+  animation:dotPop .12s ease-out;
+}
+.sq.can-capture::after{
+  content:'';position:absolute;inset:0;
+  border-radius:50%;
+  box-shadow:inset 0 0 0 5px rgba(0,0,0,.24);
+  z-index:2;pointer-events:none;
+  animation:dotPop .12s ease-out;
+}
+@keyframes dotPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* Piece place bounce */
+@keyframes pieceDrop{
+  0%  {transform:scale(1.28) translateY(-10%);opacity:.5}
+  55% {transform:scale(0.94) translateY(1%);opacity:1}
+  78% {transform:scale(1.05)}
+  100%{transform:scale(1) translateY(0)}
+}
+/* Capture pop-out */
+@keyframes pieceCapture{
+  0%  {transform:scale(1)}
+  35% {transform:scale(1.22)}
+  100%{transform:scale(0);opacity:0}
+}
+.piece-anim{animation:pieceDrop .22s cubic-bezier(.2,.8,.35,1) forwards}
+.piece-captured{animation:pieceCapture .13s ease-in forwards}
+
+/* ── Coordinate labels ─────────────────────────── */
+.coord{
+  position:absolute;
+  font-size:.58rem;font-weight:700;
+  line-height:1;z-index:3;pointer-events:none;
+}
+.coord.rank{top:2px;left:3px}
+.coord.file{bottom:2px;right:3px}
+.sq.light .coord{color:#6d1313;opacity:.75}
+.sq.dark  .coord{color:#f0e4ce;opacity:.65}
+
+/* ── Pieces (SVG rendered) ───────────────────────────────── */
+.piece-svg{
+  width:86%;height:86%;
+  display:block;pointer-events:none;
+  user-select:none;-webkit-user-select:none;
+  position:relative;z-index:4;
+}
+.sq.selected .piece-svg{
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.5));
+  transform:scale(1.08) translateY(-4%);
+  transition:transform .1s ease;
+}
+
+/* ── Side Panel ──────────────────────────────────────────── */
+.side-panel{
+  flex:1;display:flex;flex-direction:column;
+  gap:8px;min-width:180px;max-width:260px;overflow:hidden;
+}
+
+.card{
+  background:#181825;
+  border:1px solid #313244;
+  border-radius:10px;padding:10px 12px;
+  flex-shrink:0;
+}
+.card-title{
+  font-size:.65rem;text-transform:uppercase;
+  color:#6c7086;letter-spacing:.8px;
+  margin-bottom:6px;font-weight:600;
+}
+
+/* Player rows */
+.player-row{
+  display:flex;align-items:center;gap:8px;
+  padding:5px 0;
+}
+.player-row+.player-row{border-top:1px solid #313244}
+.player-color{
+  width:14px;height:14px;border-radius:50%;
+  flex-shrink:0;border:2px solid #45475a;
+}
+.player-color.white{background:#f5f5f5}
+.player-color.black{background:#1e1e2e;border-color:#89dceb}
+.player-name{font-size:.78rem;font-weight:600;color:#cdd6f4;flex:1}
+.player-caps{font-size:.8rem;letter-spacing:1px;min-height:1.1rem;color:#a6adc8}
+.player-adv{font-size:.68rem;color:#a6e3a1;font-weight:600}
+
+/* Status + opening */
+#status{font-size:.8rem;color:#cdd6f4;font-weight:500}
+#opening{font-size:.72rem;color:#89b4fa;min-height:1rem;font-style:italic;margin-top:3px}
+
+/* Thinking dots */
+.thinking-dots{display:inline-block}
+.thinking-dots span{animation:blink 1.2s infinite;color:#f38ba8}
 .thinking-dots span:nth-child(2){animation-delay:.2s}
 .thinking-dots span:nth-child(3){animation-delay:.4s}
-@keyframes blink{0%,80%,100%{opacity:.1}40%{opacity:1}}
-@media(max-width:600px){
-.main{flex-direction:column;align-items:center}
-.side-panel{width:100%;max-height:35vh;flex-direction:row;flex-wrap:wrap}
-.card{flex:1;min-width:140px}
-.move-list{max-height:15vh}
-.piece{font-size:min(10vw,40px)}
+@keyframes blink{0%,80%,100%{opacity:.15}40%{opacity:1}}
+
+/* Move list */
+.move-list{flex:1;overflow-y:auto;min-height:0;margin:-2px}
+.move-list::-webkit-scrollbar{width:4px}
+.move-list::-webkit-scrollbar-thumb{background:#45475a;border-radius:2px}
+.move-list-inner{font-size:.72rem;font-family:'Courier New',monospace}
+.mrow{display:flex;padding:2px 2px;gap:2px;border-radius:4px}
+.mrow:nth-child(even){background:rgba(255,255,255,.03)}
+.mnum{color:#45475a;min-width:22px;text-align:right;padding-right:2px}
+.mv{padding:1px 5px;border-radius:4px;cursor:pointer;min-width:48px;color:#a6adc8}
+.mv:hover{background:#313244;color:#cdd6f4}
+.mv.cur{background:#89b4fa;color:#1e1e2e;font-weight:700}
+
+/* Controls */
+.controls{display:flex;flex-wrap:wrap;gap:5px}
+.btn{
+  flex:1;min-width:46px;padding:7px 4px;
+  background:#313244;color:#cdd6f4;
+  border:1px solid #45475a;border-radius:6px;
+  font-size:.68rem;cursor:pointer;font-weight:500;
+  transition:background .15s,border-color .15s;
+}
+.btn:hover{background:#45475a;border-color:#89b4fa}
+.btn.primary{background:#89b4fa;color:#1e1e2e;border-color:#89b4fa}
+.btn.primary:hover{background:#74c7ec}
+select.btn{padding:6px 2px;appearance:none;text-align:center}
+
+/* ── Modals ──────────────────────────────────────────────── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);
+  display:flex;align-items:center;justify-content:center;z-index:99;
+  backdrop-filter:blur(4px);
+}
+.modal{
+  background:#1e1e2e;border:1px solid #89b4fa;
+  border-radius:14px;padding:24px;text-align:center;min-width:230px;
+  box-shadow:0 24px 64px rgba(0,0,0,.8);
+}
+.modal h2{margin-bottom:10px;font-size:1.1rem;color:#cdd6f4}
+.modal p{margin-bottom:18px;color:#6c7086;font-size:.85rem}
+.promo-btns{display:flex;gap:10px;justify-content:center}
+.promo-btns button{
+  font-size:2rem;padding:10px 14px;
+  background:#313244;border:2px solid #45475a;
+  border-radius:10px;cursor:pointer;color:#cdd6f4;
+  transition:border-color .15s,background .15s;
+}
+.promo-btns button:hover{border-color:#89b4fa;background:#45475a}
+.modal button.primary{
+  background:#89b4fa;border:none;color:#1e1e2e;
+  padding:10px 28px;border-radius:8px;
+  font-size:.9rem;cursor:pointer;font-weight:700;
+  transition:background .15s;
+}
+.modal button.primary:hover{background:#74c7ec}
+.hidden{display:none!important}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media(max-width:640px){
+  .main{flex-direction:column;align-items:center;padding:6px}
+  .side-panel{width:100%;max-width:100%;max-height:38vh;flex-direction:row;flex-wrap:wrap}
+  .card{flex:1;min-width:140px}
+  .move-list{max-height:14vh}
 }
 </style>
 </head>
 <body>
 <div id="app">
 <header>
-<span style="font-size:1.3rem">♟️</span>
-<h1>ChessMaster AI</h1>
-<span style="font-size:.65rem;color:#666;margin-left:auto">MVP v1.1</span>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+    <path d="M19 22H5v-2h14v2zM16.5 8.5c0 3.58-2.24 6.5-4.5 6.5S7.5 12.08 7.5 8.5 9.74 2 12 2s4.5 2.92 4.5 6.5z" fill="#89b4fa"/>
+  </svg>
+  <h1>Chess<span>Master</span> AI</h1>
+  <div id="hdrStatus" style="margin-left:auto;font-size:.68rem;color:#6c7086;font-weight:600;letter-spacing:.3px">READY</div>
 </header>
 <div class="main">
-<div class="board-area">
-<div>
-<div class="eval-bar" id="evalBar"><div class="eval-fill" id="evalFill"></div></div>
-<div class="eval-num" id="evalNum">0.0</div>
+  <div class="board-area">
+    <div class="eval-wrap">
+      <div class="eval-bar" id="evalBar"><div class="eval-fill" id="evalFill"></div></div>
+      <div class="eval-num" id="evalNum">0.0</div>
+    </div>
+    <div class="board-wrap">
+      <div id="board"></div>
+    </div>
+  </div>
+  <div class="side-panel">
+
+    <!-- Players + captured -->
+    <div class="card">
+      <div class="player-row">
+        <div class="player-color black"></div>
+        <div class="player-name">Black</div>
+        <div class="player-caps" id="capW"></div>
+        <div class="player-adv" id="advB"></div>
+      </div>
+      <div class="player-row">
+        <div class="player-color white"></div>
+        <div class="player-name">White</div>
+        <div class="player-caps" id="capB"></div>
+        <div class="player-adv" id="advW"></div>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="card">
+      <div class="card-title">📋 Game Info</div>
+      <div id="status">White to move</div>
+      <div id="opening">Starting Position</div>
+    </div>
+
+    <!-- Move list -->
+    <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
+      <div class="card-title">📝 Moves</div>
+      <div class="move-list"><div class="move-list-inner" id="moveList"></div></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="card">
+      <div class="card-title">🎮 Controls</div>
+      <div class="controls">
+        <button class="btn primary" onclick="newGame()">New</button>
+        <button class="btn" onclick="undo()">Undo</button>
+        <button class="btn" onclick="flipBoard()">Flip</button>
+        <select class="btn" id="diffSel" onchange="aiDepth=+this.value">
+          <option value="1">Easy</option>
+          <option value="2" selected>Medium</option>
+          <option value="3">Hard</option>
+        </select>
+      </div>
+      <div class="controls" style="margin-top:6px">
+        <button class="btn" onclick="playAsWhite()">▷ Play White</button>
+        <button class="btn" onclick="playAsBlack()">▷ Play Black</button>
+      </div>
+    </div>
+
+  </div>
 </div>
-<div id="board"></div>
 </div>
-<div class="side-panel">
-<div class="card">
-<h3>📋 Game Info</h3>
-<div id="status">White to move</div>
-<div id="opening">Starting Position</div>
-<div class="captured" id="capW"></div>
-<div class="captured" id="capB"></div>
-</div>
-<div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
-<h3>📝 Moves</h3>
-<div class="move-list"><div class="move-list-inner" id="moveList"></div></div>
-</div>
-<div class="card">
-<h3>🎮 Controls</h3>
-<div class="controls">
-<button onclick="newGame()">New</button>
-<button onclick="undo()">Undo</button>
-<button onclick="flipBoard()">Flip</button>
-<select id="diffSel" onchange="aiDepth=+this.value">
-<option value="1">Easy</option>
-<option value="2" selected>Medium</option>
-<option value="3">Hard</option>
-</select>
-</div>
-<div class="controls" style="margin-top:4px">
-<button onclick="playAsWhite()">Play ⬜</button>
-<button onclick="playAsBlack()">Play ⬛</button>
-</div>
-</div>
-</div>
-</div>
-</div>
+
+<!-- Promotion modal -->
 <div class="modal-bg hidden" id="promoModal">
-<div class="modal">
-<h2>Promote Pawn</h2>
-<div class="promo-btns" id="promoBtns"></div>
+  <div class="modal">
+    <h2>Promote Pawn</h2>
+    <div class="promo-btns" id="promoBtns"></div>
+  </div>
 </div>
-</div>
+
+<!-- Result modal -->
 <div class="modal-bg hidden" id="resultModal">
-<div class="modal">
-<h2 id="resultTitle"></h2>
-<p id="resultMsg"></p>
-<button class="primary" onclick="document.getElementById('resultModal').classList.add('hidden');newGame()">New Game</button>
+  <div class="modal">
+    <h2 id="resultTitle"></h2>
+    <p id="resultMsg"></p>
+    <button class="primary" onclick="document.getElementById('resultModal').classList.add('hidden');newGame()">New Game</button>
+  </div>
 </div>
-</div>
+
 <script>
-// White pieces: uppercase, Black pieces: lowercase
-const P={K:'♔',Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙',k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+// ═══════════════════════════════════════════════════════════
+//  CHESS ENGINE — untouched logic
+// ═══════════════════════════════════════════════════════════
 const FILES='abcdefgh';
 function isW(p){return p&&p===p.toUpperCase()}
 function isB(p){return p&&p===p.toLowerCase()}
@@ -151,524 +364,708 @@ let brd,turn,castl,ep,halfm,fullm,hist,sel,flipped,playerCol,aiDepth=2,gameOver,
 const PVL={p:100,n:320,b:330,r:500,q:900,k:20000};
 
 function init(){
-brd=[['r','n','b','q','k','b','n','r'],['p','p','p','p','p','p','p','p'],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],['P','P','P','P','P','P','P','P'],['R','N','B','Q','K','B','N','R']];
-turn='w';castl={K:1,Q:1,k:1,q:1};ep=null;halfm=0;fullm=1;hist=[];sel=null;gameOver=false;sans=[];thinking=false;
+  brd=[['r','n','b','q','k','b','n','r'],['p','p','p','p','p','p','p','p'],
+       [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+       ['P','P','P','P','P','P','P','P'],['R','N','B','Q','K','B','N','R']];
+  turn='w';castl={K:1,Q:1,k:1,q:1};ep=null;halfm=0;fullm=1;
+  hist=[];sel=null;gameOver=false;sans=[];thinking=false;
 }
 
 function fK(b,c){const k=c==='w'?'K':'k';for(let r=0;r<8;r++)for(let f=0;f<8;f++)if(b[r][f]===k)return[r,f];return null}
 
 function att(b,r,c,by){
-for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const p=b[nr][nc];if(p&&col(p,by)&&p.toLowerCase()==='n')return 1}}
-for(const[dr,dc]of[[-1,-1],[-1,1],[1,-1],[1,1]]){for(let i=1;i<8;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=8||nc<0||nc>=8)break;const p=b[nr][nc];if(p){if(col(p,by)){const t=p.toLowerCase();if(t==='b'||t==='q')return 1;if(i===1&&t==='k')return 1;if(i===1&&t==='p'){if(by==='w'&&dr===1)return 1;if(by==='b'&&dr===-1)return 1}}break}}}
-for(const[dr,dc]of[[-1,0],[1,0],[0,-1],[0,1]]){for(let i=1;i<8;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=8||nc<0||nc>=8)break;const p=b[nr][nc];if(p){if(col(p,by)){const t=p.toLowerCase();if(t==='r'||t==='q')return 1;if(i===1&&t==='k')return 1}break}}}
-return 0}
+  for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){
+    const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const p=b[nr][nc];if(p&&col(p,by)&&p.toLowerCase()==='n')return 1}}
+  for(const[dr,dc]of[[-1,-1],[-1,1],[1,-1],[1,1]]){
+    for(let i=1;i<8;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=8||nc<0||nc>=8)break;const p=b[nr][nc];if(p){if(col(p,by)){const t=p.toLowerCase();if(t==='b'||t==='q')return 1;if(i===1&&t==='k')return 1;if(i===1&&t==='p'){if(by==='w'&&dr===1)return 1;if(by==='b'&&dr===-1)return 1}}break}}}
+  for(const[dr,dc]of[[-1,0],[1,0],[0,-1],[0,1]]){
+    for(let i=1;i<8;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=8||nc<0||nc>=8)break;const p=b[nr][nc];if(p){if(col(p,by)){const t=p.toLowerCase();if(t==='r'||t==='q')return 1;if(i===1&&t==='k')return 1}break}}}
+  return 0}
 
 function genM(){
-const mv=[];
-for(let r=0;r<8;r++)for(let c=0;c<8;c++){
-const p=brd[r][c];if(!p||!col(p,turn))continue;const t=p.toLowerCase();
-if(t==='p'){
-const d=turn==='w'?-1:1,sr=turn==='w'?6:1,pr=turn==='w'?0:7,r1=r+d;
-if(r1>=0&&r1<8&&!brd[r1][c]){if(r1===pr){for(const q of['q','r','b','n'])mv.push({fr:r,fc:c,tr:r1,tc:c,p,cap:0,promo:q,fl:0})}else{mv.push({fr:r,fc:c,tr:r1,tc:c,p,cap:0,promo:0,fl:0});if(r===sr&&!brd[r+2*d][c])mv.push({fr:r,fc:c,tr:r+2*d,tc:c,p,cap:0,promo:0,fl:'dp'})}}
-for(const dc of[-1,1]){const nc=c+dc;if(nc<0||nc>=8||r1<0||r1>=8)continue;const tg=brd[r1][nc];if(tg&&!col(tg,turn)){if(r1===pr){for(const q of['q','r','b','n'])mv.push({fr:r,fc:c,tr:r1,tc:nc,p,cap:tg,promo:q,fl:0})}else mv.push({fr:r,fc:c,tr:r1,tc:nc,p,cap:tg,promo:0,fl:0})}if(ep&&r1===ep[0]&&nc===ep[1])mv.push({fr:r,fc:c,tr:r1,tc:nc,p,cap:brd[r][nc],promo:0,fl:'ep'})}
-}else if(t==='n'){for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const tg=brd[nr][nc];if(!tg||!col(tg,turn))mv.push({fr:r,fc:c,tr:nr,tc:nc,p,cap:tg||0,promo:0,fl:0})}}
-}else if(t==='k'){for(const[dr,dc]of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const tg=brd[nr][nc];if(!tg||!col(tg,turn))mv.push({fr:r,fc:c,tr:nr,tc:nc,p,cap:tg||0,promo:0,fl:0})}}
-const o=opp(turn),row=turn==='w'?7:0,rk=turn==='w'?'R':'r';
-if(r===row&&c===4){if(castl[turn==='w'?'K':'k']&&!brd[row][5]&&!brd[row][6]&&brd[row][7]===rk&&!att(brd,row,4,o)&&!att(brd,row,5,o)&&!att(brd,row,6,o))mv.push({fr:row,fc:4,tr:row,tc:6,p,cap:0,promo:0,fl:'ck'});if(castl[turn==='w'?'Q':'q']&&!brd[row][3]&&!brd[row][2]&&!brd[row][1]&&brd[row][0]===rk&&!att(brd,row,4,o)&&!att(brd,row,3,o)&&!att(brd,row,2,o))mv.push({fr:row,fc:4,tr:row,tc:2,p,cap:0,promo:0,fl:'cq'})}
-}else{
-const dirs=t==='b'?[[-1,-1],[-1,1],[1,-1],[1,1]]:t==='r'?[[-1,0],[1,0],[0,-1],[0,1]]:[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]];
-for(const[dr,dc]of dirs){for(let i=1;i<8;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=8||nc<0||nc>=8)break;const tg=brd[nr][nc];if(!tg)mv.push({fr:r,fc:c,tr:nr,tc:nc,p,cap:0,promo:0,fl:0});else{if(!col(tg,turn))mv.push({fr:r,fc:c,tr:nr,tc:nc,p,cap:tg,promo:0,fl:0});break}}}
-}}
-return mv}
+  const mv=[];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=brd[r][c];if(!p||!col(p,turn))continue;const t=p.toLowerCase();
+    if(t==='p'){
+      const d=turn==='w'?-1:1,sr=turn==='w'?6:1,pr=turn==='w'?0:7,r1=r+d;
+      if(r1>=0&&r1<8&&!brd[r1][c]){
+        if(r1===pr){for(const q of['q','r','b','n'])mv.push({fr:r,fc:c,tr:r1,tc:c,p,cap:0,promo:q,fl:0})}
+        else{mv.push({fr:r,fc:c,tr:r1,tc:c,p,cap:0,promo:0,fl:0});if(r===sr&&!brd[r+2*d][c])mv.push({fr:r,fc:c,tr:r+2*d,tc:c,p,cap:0,promo:0,fl:'dp'})}}
+      for(const dc of[-1,1]){const nc=c+dc;if(nc<0||nc>=8||r1<0||r1>=8)continue;const tg=brd[r1][nc];
+        if(tg&&!col(tg,turn)){if(r1===pr){for(const q of['q','r','b','n'])mv.push({fr:r,fc:c,tr:r1,tc:nc,p,cap:tg,promo:q,fl:0})}else mv.push({fr:r,fc:c,tr:r1,tc:nc,p,cap:tg,promo:0,fl:0})}
+        if(ep&&r1===ep[0]&&nc===ep[1])mv.push({fr:r,fc:c,tr:r1,tc:nc,p,cap:brd[r][nc],promo:0,fl:'ep'})}
+    }else if(t==='n'){
+      for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]){
+        const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const tg=brd[nr][nc];if(!tg||!col(tg,turn))mv.push({fr:r,fc:c,tr:nr,tc:nc,p,cap:tg||0,promo:0,fl:0})}}
+    }else if(t==='k'){
+      for(const[dr,dc]of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]){
+        const nr=r+dr,nc=c+dc;if(nr>=0&&nr<8&&nc>=0&&nc<8){const tg=brd[nr][nc];if(!tg||!col(tg,turn))mv.push({fr:r,fc:c,tr:nr,tc:nc,p,cap:tg||0,promo:0,fl:0})}}
+      const o=opp(turn),row=turn==='w'?7:0,rk=turn==='w'?'R':'r';
+      if(r===row&&c===4){
+        if(castl[turn==='w'?'K':'k']&&!brd[row][5]&&!brd[row][6]&&brd[row][7]===rk&&!att(brd,row,4,o)&&!att(brd,row,5,o)&&!att(brd,row,6,o))
+          mv.push({fr:row,fc:4,tr:row,tc:6,p,cap:0,promo:0,fl:'ck'});
+        if(castl[turn==='w'?'Q':'q']&&!brd[row][3]&&!brd[row][2]&&!brd[row][1]&&brd[row][0]===rk&&!att(brd,row,4,o)&&!att(brd,row,3,o)&&!att(brd,row,2,o))
+          mv.push({fr:row,fc:4,tr:row,tc:2,p,cap:0,promo:0,fl:'cq'});}
+    }else{
+      const dirs=t==='b'?[[-1,-1],[-1,1],[1,-1],[1,1]]:t==='r'?[[-1,0],[1,0],[0,-1],[0,1]]:[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]];
+      for(const[dr,dc]of dirs){for(let i=1;i<8;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=8||nc<0||nc>=8)break;const tg=brd[nr][nc];if(!tg)mv.push({fr:r,fc:c,tr:nr,tc:nc,p,cap:0,promo:0,fl:0});else{if(!col(tg,turn))mv.push({fr:r,fc:c,tr:nr,tc:nc,p,cap:tg,promo:0,fl:0});break}}}}}
+  return mv}
 
 function doM(m){
-const s={c:{...castl},ep:ep?[...ep]:null,hm:halfm};hist.push({s,m});
-brd[m.tr][m.tc]=m.promo?(turn==='w'?m.promo.toUpperCase():m.promo):brd[m.fr][m.fc];brd[m.fr][m.fc]=0;
-if(m.fl==='ep')brd[m.fr][m.tc]=0;
-else if(m.fl==='ck'){brd[m.tr][5]=brd[m.tr][7];brd[m.tr][7]=0}
-else if(m.fl==='cq'){brd[m.tr][3]=brd[m.tr][0];brd[m.tr][0]=0}
-ep=m.fl==='dp'?[(m.fr+m.tr)/2,m.fc]:null;
-if(m.p.toLowerCase()==='k'){if(turn==='w'){castl.K=0;castl.Q=0}else{castl.k=0;castl.q=0}}
-if(m.fr===7&&m.fc===0)castl.Q=0;if(m.fr===7&&m.fc===7)castl.K=0;
-if(m.fr===0&&m.fc===0)castl.q=0;if(m.fr===0&&m.fc===7)castl.k=0;
-if(m.tr===7&&m.tc===0)castl.Q=0;if(m.tr===7&&m.tc===7)castl.K=0;
-if(m.tr===0&&m.tc===0)castl.q=0;if(m.tr===0&&m.tc===7)castl.k=0;
-halfm=(m.p.toLowerCase()==='p'||m.cap)?0:halfm+1;
-if(turn==='b')fullm++;turn=opp(turn)}
+  const s={c:{...castl},ep:ep?[...ep]:null,hm:halfm};hist.push({s,m});
+  brd[m.tr][m.tc]=m.promo?(turn==='w'?m.promo.toUpperCase():m.promo):brd[m.fr][m.fc];brd[m.fr][m.fc]=0;
+  if(m.fl==='ep')brd[m.fr][m.tc]=0;
+  else if(m.fl==='ck'){brd[m.tr][5]=brd[m.tr][7];brd[m.tr][7]=0}
+  else if(m.fl==='cq'){brd[m.tr][3]=brd[m.tr][0];brd[m.tr][0]=0}
+  ep=m.fl==='dp'?[(m.fr+m.tr)/2,m.fc]:null;
+  if(m.p.toLowerCase()==='k'){if(turn==='w'){castl.K=0;castl.Q=0}else{castl.k=0;castl.q=0}}
+  if(m.fr===7&&m.fc===0)castl.Q=0;if(m.fr===7&&m.fc===7)castl.K=0;
+  if(m.fr===0&&m.fc===0)castl.q=0;if(m.fr===0&&m.fc===7)castl.k=0;
+  if(m.tr===7&&m.tc===0)castl.Q=0;if(m.tr===7&&m.tc===7)castl.K=0;
+  if(m.tr===0&&m.tc===0)castl.q=0;if(m.tr===0&&m.tc===7)castl.k=0;
+  halfm=(m.p.toLowerCase()==='p'||m.cap)?0:halfm+1;
+  if(turn==='b')fullm++;turn=opp(turn)}
 
 function unM(){
-const h=hist.pop();if(!h)return;const{s,m}=h;turn=opp(turn);if(turn==='b')fullm--;
-castl=s.c;ep=s.ep;halfm=s.hm;
-brd[m.fr][m.fc]=m.p;brd[m.tr][m.tc]=m.cap||0;
-if(m.fl==='ep'){brd[m.fr][m.tc]=m.cap;brd[m.tr][m.tc]=0}
-else if(m.fl==='ck'){brd[m.tr][7]=brd[m.tr][5];brd[m.tr][5]=0}
-else if(m.fl==='cq'){brd[m.tr][0]=brd[m.tr][3];brd[m.tr][3]=0}}
+  const h=hist.pop();if(!h)return;const{s,m}=h;turn=opp(turn);if(turn==='b')fullm--;
+  castl=s.c;ep=s.ep;halfm=s.hm;
+  brd[m.fr][m.fc]=m.p;brd[m.tr][m.tc]=m.cap||0;
+  if(m.fl==='ep'){brd[m.fr][m.tc]=m.cap;brd[m.tr][m.tc]=0}
+  else if(m.fl==='ck'){brd[m.tr][7]=brd[m.tr][5];brd[m.tr][5]=0}
+  else if(m.fl==='cq'){brd[m.tr][0]=brd[m.tr][3];brd[m.tr][3]=0}}
 
 function legal(){
-const all=genM(),leg=[];
-for(const m of all){doM(m);const kp=fK(brd,opp(turn));if(kp&&!att(brd,kp[0],kp[1],turn))leg.push(m);unM()}
-return leg}
+  const all=genM(),leg=[];
+  for(const m of all){doM(m);const kp=fK(brd,opp(turn));if(kp&&!att(brd,kp[0],kp[1],turn))leg.push(m);unM()}
+  return leg}
 
 function inChk(){const kp=fK(brd,turn);return kp&&att(brd,kp[0],kp[1],opp(turn))}
 
 function toSAN(m){
-if(m.fl==='ck')return'O-O';if(m.fl==='cq')return'O-O-O';
-const t=m.p.toLowerCase();let s='';
-if(t!=='p'){s+=t.toUpperCase();const lg=legal();const amb=lg.filter(x=>x.p===m.p&&x.tr===m.tr&&x.tc===m.tc&&(x.fr!==m.fr||x.fc!==m.fc));if(amb.length){const sf=amb.some(x=>x.fc===m.fc),sr=amb.some(x=>x.fr===m.fr);if(!sf)s+=FILES[m.fc];else if(!sr)s+=(8-m.fr);else s+=FILES[m.fc]+(8-m.fr)}}
-if(m.cap){if(t==='p')s+=FILES[m.fc];s+='x'}
-s+=FILES[m.tc]+(8-m.tr);if(m.promo)s+='='+m.promo.toUpperCase();
-doM(m);const ic=inChk(),lm=legal();if(ic)s+=lm.length?'+':'#';unM();
-return s}
+  if(m.fl==='ck')return'O-O';if(m.fl==='cq')return'O-O-O';
+  const t=m.p.toLowerCase();let s='';
+  if(t!=='p'){s+=t.toUpperCase();const lg=legal();const amb=lg.filter(x=>x.p===m.p&&x.tr===m.tr&&x.tc===m.tc&&(x.fr!==m.fr||x.fc!==m.fc));if(amb.length){const sf=amb.some(x=>x.fc===m.fc),sr=amb.some(x=>x.fr===m.fr);if(!sf)s+=FILES[m.fc];else if(!sr)s+=(8-m.fr);else s+=FILES[m.fc]+(8-m.fr)}}
+  if(m.cap){if(t==='p')s+=FILES[m.fc];s+='x'}
+  s+=FILES[m.tc]+(8-m.tr);if(m.promo)s+='='+m.promo.toUpperCase();
+  doM(m);const ic=inChk(),lm=legal();if(ic)s+=lm.length?'+':'#';unM();
+  return s}
 
 const PST={
-p:[[0,0,0,0,0,0,0,0],[50,50,50,50,50,50,50,50],[10,10,20,30,30,20,10,10],[5,5,10,25,25,10,5,5],[0,0,0,20,20,0,0,0],[5,-5,-10,0,0,-10,-5,5],[5,10,10,-20,-20,10,10,5],[0,0,0,0,0,0,0,0]],
-n:[[-50,-40,-30,-30,-30,-30,-40,-50],[-40,-20,0,0,0,0,-20,-40],[-30,0,10,15,15,10,0,-30],[-30,5,15,20,20,15,5,-30],[-30,0,15,20,20,15,0,-30],[-30,5,10,15,15,10,5,-30],[-40,-20,0,5,5,0,-20,-40],[-50,-40,-30,-30,-30,-30,-40,-50]],
-b:[[-20,-10,-10,-10,-10,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,10,10,5,0,-10],[-10,5,5,10,10,5,5,-10],[-10,0,10,10,10,10,0,-10],[-10,10,10,10,10,10,10,-10],[-10,5,0,0,0,0,5,-10],[-20,-10,-10,-10,-10,-10,-10,-20]],
-r:[[0,0,0,0,0,0,0,0],[5,10,10,10,10,10,10,5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[0,0,0,5,5,0,0,0]],
-q:[[-20,-10,-10,-5,-5,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,5,5,5,0,-10],[-5,0,5,5,5,5,0,-5],[0,0,5,5,5,5,0,-5],[-10,5,5,5,5,5,0,-10],[-10,0,5,0,0,0,0,-10],[-20,-10,-10,-5,-5,-10,-10,-20]],
-k:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]]};
+  p:[[0,0,0,0,0,0,0,0],[50,50,50,50,50,50,50,50],[10,10,20,30,30,20,10,10],[5,5,10,25,25,10,5,5],[0,0,0,20,20,0,0,0],[5,-5,-10,0,0,-10,-5,5],[5,10,10,-20,-20,10,10,5],[0,0,0,0,0,0,0,0]],
+  n:[[-50,-40,-30,-30,-30,-30,-40,-50],[-40,-20,0,0,0,0,-20,-40],[-30,0,10,15,15,10,0,-30],[-30,5,15,20,20,15,5,-30],[-30,0,15,20,20,15,0,-30],[-30,5,10,15,15,10,5,-30],[-40,-20,0,5,5,0,-20,-40],[-50,-40,-30,-30,-30,-30,-40,-50]],
+  b:[[-20,-10,-10,-10,-10,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,10,10,5,0,-10],[-10,5,5,10,10,5,5,-10],[-10,0,10,10,10,10,0,-10],[-10,10,10,10,10,10,10,-10],[-10,5,0,0,0,0,5,-10],[-20,-10,-10,-10,-10,-10,-10,-20]],
+  r:[[0,0,0,0,0,0,0,0],[5,10,10,10,10,10,10,5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[0,0,0,5,5,0,0,0]],
+  q:[[-20,-10,-10,-5,-5,-10,-10,-20],[-10,0,0,0,0,0,0,-10],[-10,0,5,5,5,5,0,-10],[-5,0,5,5,5,5,0,-5],[0,0,5,5,5,5,0,-5],[-10,5,5,5,5,5,0,-10],[-10,0,5,0,0,0,0,-10],[-20,-10,-10,-5,-5,-10,-10,-20]],
+  k:[[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20]]};
 
-function ev(){let s=0;for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=brd[r][c];if(!p)continue;const t=p.toLowerCase(),v=PVL[t],ps=PST[t];if(isW(p))s+=v+ps[r][c];else s-=v+ps[7-r][c]}return s}
+function ev(){
+  let s=0;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){const p=brd[r][c];if(!p)continue;const t=p.toLowerCase(),v=PVL[t],ps=PST[t];if(isW(p))s+=v+ps[r][c];else s-=v+ps[7-r][c]}
+  return s}
 
 function ab(d,a,b,mx){
-if(d===0)return ev();
-const mvs=legal();
-if(!mvs.length)return inChk()?(mx?-99999+d:99999-d):0;
-mvs.sort((x,y)=>{let sx=(x.cap?PVL[x.cap.toLowerCase()]:0)+(x.promo?800:0),sy=(y.cap?PVL[y.cap.toLowerCase()]:0)+(y.promo?800:0);return sy-sx});
-if(mx){let best=-1e9;for(const m of mvs){doM(m);const v=ab(d-1,a,b,0);unM();best=Math.max(best,v);a=Math.max(a,v);if(b<=a)break}return best}
-else{let best=1e9;for(const m of mvs){doM(m);const v=ab(d-1,a,b,1);unM();best=Math.min(best,v);b=Math.min(b,v);if(b<=a)break}return best}}
+  if(d===0)return ev();
+  const mvs=legal();
+  if(!mvs.length)return inChk()?(mx?-99999+d:99999-d):0;
+  mvs.sort((x,y)=>{let sx=(x.cap?PVL[x.cap.toLowerCase()]:0)+(x.promo?800:0),sy=(y.cap?PVL[y.cap.toLowerCase()]:0)+(y.promo?800:0);return sy-sx});
+  if(mx){let best=-1e9;for(const m of mvs){doM(m);const v=ab(d-1,a,b,0);unM();best=Math.max(best,v);a=Math.max(a,v);if(b<=a)break}return best}
+  else{let best=1e9;for(const m of mvs){doM(m);const v=ab(d-1,a,b,1);unM();best=Math.min(best,v);b=Math.min(b,v);if(b<=a)break}return best}}
 
-// ── Opening Book ──────────────────────────────────────────────────────────────
-// Keys are SAN move sequences; values are weighted arrays (duplicates = higher probability)
-const BOOK = {
-  // First moves for White
-  '':                                  ['e4','e4','e4','e4','d4','d4','d4','c4','Nf3'],
-  // First moves for Black after 1.e4
-  'e4':                                ['e5','e5','e5','c5','c5','e6','c6','d5','Nf6'],
-  // First moves for Black after 1.d4
-  'd4':                                ['d5','d5','Nf6','Nf6','Nf6','e6','f5'],
-  // First moves for Black after 1.c4
-  'c4':                                ['e5','Nf6','c5','e6'],
-  // First moves for Black after 1.Nf3
-  'Nf3':                               ['d5','Nf6','c5','g6'],
-
-  // ── After 1.e4 e5 ──
-  'e4 e5':                             ['Nf3','Nf3','Nf3','Bc4','Nc3','f4'],
-  'e4 e5 Nf3':                         ['Nc6','Nc6','Nf6','d6','f5'],
-  'e4 e5 Nf3 Nc6':                     ['Bb5','Bb5','Bc4','Bc4','d4','Nc3','f4'],
-  'e4 e5 Nf3 Nf6':                     ['Nxe5','d4'],
-  'e4 e5 Nf3 d6':                      ['d4','Bc4','Bb5+'],
-  'e4 e5 Nf3 f5':                      ['Nxe5','Bc4','d4'],
-
-  // Ruy Lopez
-  'e4 e5 Nf3 Nc6 Bb5':                 ['a6','a6','Nf6','d6','Bc5','g6'],
-  'e4 e5 Nf3 Nc6 Bb5 a6':             ['Ba4','Ba4','Bxc6'],
-  'e4 e5 Nf3 Nc6 Bb5 a6 Ba4':         ['Nf6','b5','d6'],
-  'e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6':     ['O-O','d3','Qe2'],
-  'e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O': ['Be7','b5','Nxe4'],
-  'e4 e5 Nf3 Nc6 Bb5 Nf6':            ['O-O','d3','Nc3'],
-  'e4 e5 Nf3 Nc6 Bb5 Bc5':            ['O-O','c3','Nxe5'],
-
-  // Italian Game
-  'e4 e5 Nf3 Nc6 Bc4':                ['Bc5','Bc5','Nf6','d6','Be7'],
-  'e4 e5 Nf3 Nc6 Bc4 Bc5':            ['c3','O-O','d3','b4'],
-  'e4 e5 Nf3 Nc6 Bc4 Nf6':            ['Ng5','d3','O-O'],
-  'e4 e5 Nf3 Nc6 Bc4 Nf6 Ng5':        ['d5','Bc5','Nd4'],
-  'e4 e5 Nf3 Nc6 Bc4 Bc5 c3':         ['Nf6','d6','O-O'],
-  'e4 e5 Nf3 Nc6 Bc4 Bc5 O-O':        ['Nf6','d6','a6'],
-
-  // Scotch Game
-  'e4 e5 Nf3 Nc6 d4':                 ['exd4','d6'],
-  'e4 e5 Nf3 Nc6 d4 exd4':            ['Nxd4','Bc4'],
-  'e4 e5 Nf3 Nc6 d4 exd4 Nxd4':       ['Bc5','Nf6','Qh4','d6'],
-  'e4 e5 Nf3 Nc6 d4 exd4 Nxd4 Bc5':   ['Be3','Nxc6','Nb3','c3'],
-  'e4 e5 Nf3 Nc6 d4 exd4 Nxd4 Nf6':   ['Nxc6','Nc3','Bg5'],
-
-  // Petrov / Russian
-  'e4 e5 Nf3 Nf6':                     ['Nxe5','d4','Nc3'],
-  'e4 e5 Nf3 Nf6 Nxe5':               ['d6','Nc6'],
-  'e4 e5 Nf3 Nf6 Nxe5 d6':            ['Nf3','Nc4'],
-  'e4 e5 Nf3 Nf6 d4':                  ['Nxe4','exd4'],
-
-  // King's Gambit
-  'e4 e5 f4':                          ['exf4','Bc5','d5'],
-  'e4 e5 f4 exf4':                     ['Nf3','Bc4'],
-  'e4 e5 f4 exf4 Nf3':                 ['g5','d6','Nf6'],
-
-  // ── After 1.e4 c5 (Sicilian) ──
-  'e4 c5':                             ['Nf3','Nf3','Nf3','Nc3','c3','f4'],
-  'e4 c5 Nf3':                         ['d6','Nc6','e6','g6'],
-  'e4 c5 Nf3 d6':                      ['d4','Bb5+','Nc3'],
-  'e4 c5 Nf3 d6 d4':                   ['cxd4','Nf6'],
-  'e4 c5 Nf3 d6 d4 cxd4':             ['Nxd4'],
-  'e4 c5 Nf3 d6 d4 cxd4 Nxd4':        ['Nf6','Nd7','a6'],
-  'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6':    ['Nc3','f3','Nd2','Bg5'],
-  'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3':['a6','g6','e6','Bd7'], // Najdorf / Dragon / Scheveningen
-  'e4 c5 Nf3 Nc6':                     ['d4','Bb5','Nc3','c3'],
-  'e4 c5 Nf3 Nc6 d4':                  ['cxd4','g6'],
-  'e4 c5 Nf3 Nc6 d4 cxd4':            ['Nxd4'],
-  'e4 c5 Nf3 Nc6 d4 cxd4 Nxd4':       ['g6','e6','Nf6','d6'],
-  'e4 c5 Nf3 e6':                      ['d4','Nc3','d3'],
-  'e4 c5 Nf3 e6 d4':                   ['cxd4','a6','Nc6'],
-  'e4 c5 Nf3 g6':                      ['d4','c3','Nc3'],
-
-  // ── After 1.e4 e6 (French) ──
-  'e4 e6':                             ['d4','d4','d4','Nf3','Nc3'],
-  'e4 e6 d4':                          ['d5','d5','Nf6'],
-  'e4 e6 d4 d5':                       ['Nc3','Nd2','e5','exd5'],
-  'e4 e6 d4 d5 Nc3':                   ['Bb4','Nf6','dxe4'],
-  'e4 e6 d4 d5 Nc3 Bb4':              ['e5','a3','Bd3'],
-  'e4 e6 d4 d5 Nc3 Nf6':              ['e5','Bg5','Bd3'],
-  'e4 e6 d4 d5 Nd2':                   ['Nf6','c5','Nc6'],
-  'e4 e6 d4 d5 e5':                    ['c5','Nc6','Bd7'],
-  'e4 e6 d4 d5 exd5':                  ['exd5','Qxd5'],
-
-  // ── After 1.e4 c6 (Caro-Kann) ──
-  'e4 c6':                             ['d4','d4','d4','Nc3','Nf3'],
-  'e4 c6 d4':                          ['d5'],
-  'e4 c6 d4 d5':                       ['Nc3','Nd2','e5','exd5'],
-  'e4 c6 d4 d5 Nc3':                   ['dxe4','g6','Nf6'],
-  'e4 c6 d4 d5 Nc3 dxe4':             ['Nxe4'],
-  'e4 c6 d4 d5 Nc3 dxe4 Nxe4':        ['Bf5','Nf6','Nd7'],
-  'e4 c6 d4 d5 Nd2':                   ['dxe4','Nf6','g6'],
-  'e4 c6 d4 d5 e5':                    ['Bf5','c5','Nd7'],
-
-  // ── After 1.e4 d5 (Scandinavian) ──
-  'e4 d5':                             ['exd5','Nc3','d4'],
-  'e4 d5 exd5':                        ['Qxd5','Nf6'],
-  'e4 d5 exd5 Qxd5':                   ['Nc3'],
-  'e4 d5 exd5 Qxd5 Nc3':              ['Qa5','Qd6','Qd8'],
-  'e4 d5 exd5 Nf6':                    ['d4','c4','Bb5+'],
-
-  // ── After 1.d4 d5 ──
-  'd4 d5':                             ['c4','c4','c4','Nf3','Bf4','e3'],
-  'd4 d5 c4':                          ['e6','c6','dxc4','Nf6','e5'],
-  'd4 d5 c4 e6':                       ['Nc3','Nf3','cxd5'],           // QGD
-  'd4 d5 c4 e6 Nc3':                   ['Nf6','Bb4','Be7','c5'],
-  'd4 d5 c4 e6 Nc3 Nf6':              ['Bg5','Nf3','cxd5','e3'],
-  'd4 d5 c4 c6':                       ['Nf3','Nc3','e3'],              // Slav
-  'd4 d5 c4 c6 Nf3':                   ['Nf6','e6','dxc4'],
-  'd4 d5 c4 c6 Nf3 Nf6':              ['Nc3','e3','g3'],
-  'd4 d5 c4 dxc4':                     ['Nf3','e3','e4'],               // QGA
-  'd4 d5 c4 Nf6':                      ['cxd5','Nf3','Nc3'],
-  'd4 d5 Nf3':                         ['Nf6','c5','e6','Bf5'],
-  'd4 d5 Bf4':                         ['Nf6','e6','c5'],
-
-  // ── After 1.d4 Nf6 ──
-  'd4 Nf6':                            ['c4','c4','c4','Nf3','Bg5','e3'],
-  'd4 Nf6 c4':                         ['g6','e6','c5','d5'],           // KID / Nimzo / Grünfeld
-  'd4 Nf6 c4 g6':                      ['Nc3','g3','Nf3'],              // King's Indian
-  'd4 Nf6 c4 g6 Nc3':                  ['Bg7','d5','c5'],
-  'd4 Nf6 c4 g6 Nc3 Bg7':             ['e4','Nf3','g3'],
-  'd4 Nf6 c4 g6 Nc3 Bg7 e4':          ['d6','O-O','c5'],
-  'd4 Nf6 c4 g6 Nc3 Bg7 e4 d6':       ['Nf3','f3','Be2'],
-  'd4 Nf6 c4 g6 g3':                   ['Bg7','d5','c5'],
-  'd4 Nf6 c4 e6':                      ['Nc3','Nf3','g3'],
-  'd4 Nf6 c4 e6 Nc3':                  ['Bb4','d5','c5'],               // Nimzo-Indian
-  'd4 Nf6 c4 e6 Nc3 Bb4':             ['Qc2','e3','a3','Bg5'],
-  'd4 Nf6 c4 e6 Nf3':                  ['b6','d5','Bb4+'],
-  'd4 Nf6 c4 d5':                      ['Nc3','Nf3','e3'],              // Grünfeld
-  'd4 Nf6 c4 d5 Nc3':                  ['g6','dxc4','e6'],
-  'd4 Nf6 c4 d5 Nc3 g6':              ['Nf3','cxd5','Bg5'],
-  'd4 Nf6 c4 c5':                      ['d5','Nf3','Nc3'],              // Benoni
-  'd4 Nf6 Nf3':                        ['e6','d5','g6','c5'],
-
-  // ── After 1.c4 (English) ──
-  'c4 e5':                             ['Nc3','Nf3','g3','e3'],
-  'c4 e5 Nc3':                         ['Nf6','Nc6','d6','Bb4'],
-  'c4 e5 Nf3':                         ['Nc6','e4','d6'],
-  'c4 Nf6':                            ['Nc3','Nf3','g3'],
-  'c4 Nf6 Nc3':                        ['d5','e5','c5','g6'],
-  'c4 c5':                             ['Nf3','Nc3','g3'],
-  'c4 e6':                             ['Nc3','Nf3','g3','d4'],
-  'c4 g6':                             ['Nc3','d4','Nf3'],
-
-  // ── After 1.Nf3 (Réti) ──
-  'Nf3 d5':                            ['c4','g3','d4','e3'],
-  'Nf3 Nf6':                           ['c4','g3','d4'],
-  'Nf3 c5':                            ['c4','e3','g3'],
-  'Nf3 g6':                            ['c4','d4','g3'],
-  'Nf3 d5 c4':                         ['d4','e6','c6','dxc4'],
-  'Nf3 d5 g3':                         ['c5','Nf6','Bf5'],
+// ── Opening Book ──────────────────────────────────────────
+const BOOK={
+  '':['e4','e4','e4','e4','d4','d4','d4','c4','Nf3'],
+  'e4':['e5','e5','e5','c5','c5','e6','c6','d5','Nf6'],
+  'd4':['d5','d5','Nf6','Nf6','Nf6','e6','f5'],
+  'c4':['e5','Nf6','c5','e6'],
+  'Nf3':['d5','Nf6','c5','g6'],
+  'e4 e5':['Nf3','Nf3','Nf3','Bc4','Nc3','f4'],
+  'e4 e5 Nf3':['Nc6','Nc6','Nf6','d6','f5'],
+  'e4 e5 Nf3 Nc6':['Bb5','Bb5','Bc4','Bc4','d4','Nc3','f4'],
+  'e4 e5 Nf3 Nf6':['Nxe5','d4'],
+  'e4 e5 Nf3 d6':['d4','Bc4','Bb5+'],
+  'e4 e5 Nf3 f5':['Nxe5','Bc4','d4'],
+  'e4 e5 Nf3 Nc6 Bb5':['a6','a6','Nf6','d6','Bc5','g6'],
+  'e4 e5 Nf3 Nc6 Bb5 a6':['Ba4','Ba4','Bxc6'],
+  'e4 e5 Nf3 Nc6 Bb5 a6 Ba4':['Nf6','b5','d6'],
+  'e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6':['O-O','d3','Qe2'],
+  'e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O':['Be7','b5','Nxe4'],
+  'e4 e5 Nf3 Nc6 Bb5 Nf6':['O-O','d3','Nc3'],
+  'e4 e5 Nf3 Nc6 Bb5 Bc5':['O-O','c3','Nxe5'],
+  'e4 e5 Nf3 Nc6 Bc4':['Bc5','Bc5','Nf6','d6','Be7'],
+  'e4 e5 Nf3 Nc6 Bc4 Bc5':['c3','O-O','d3','b4'],
+  'e4 e5 Nf3 Nc6 Bc4 Nf6':['Ng5','d3','O-O'],
+  'e4 e5 Nf3 Nc6 Bc4 Nf6 Ng5':['d5','Bc5','Nd4'],
+  'e4 e5 Nf3 Nc6 Bc4 Bc5 c3':['Nf6','d6','O-O'],
+  'e4 e5 Nf3 Nc6 Bc4 Bc5 O-O':['Nf6','d6','a6'],
+  'e4 e5 Nf3 Nc6 d4':['exd4','d6'],
+  'e4 e5 Nf3 Nc6 d4 exd4':['Nxd4','Bc4'],
+  'e4 e5 Nf3 Nc6 d4 exd4 Nxd4':['Bc5','Nf6','Qh4','d6'],
+  'e4 e5 Nf3 Nc6 d4 exd4 Nxd4 Bc5':['Be3','Nxc6','Nb3','c3'],
+  'e4 e5 Nf3 Nc6 d4 exd4 Nxd4 Nf6':['Nxc6','Nc3','Bg5'],
+  'e4 e5 Nf3 Nf6':['Nxe5','d4','Nc3'],
+  'e4 e5 Nf3 Nf6 Nxe5':['d6','Nc6'],
+  'e4 e5 Nf3 Nf6 Nxe5 d6':['Nf3','Nc4'],
+  'e4 e5 Nf3 Nf6 d4':['Nxe4','exd4'],
+  'e4 e5 f4':['exf4','Bc5','d5'],
+  'e4 e5 f4 exf4':['Nf3','Bc4'],
+  'e4 e5 f4 exf4 Nf3':['g5','d6','Nf6'],
+  'e4 c5':['Nf3','Nf3','Nf3','Nc3','c3','f4'],
+  'e4 c5 Nf3':['d6','Nc6','e6','g6'],
+  'e4 c5 Nf3 d6':['d4','Bb5+','Nc3'],
+  'e4 c5 Nf3 d6 d4':['cxd4','Nf6'],
+  'e4 c5 Nf3 d6 d4 cxd4':['Nxd4'],
+  'e4 c5 Nf3 d6 d4 cxd4 Nxd4':['Nf6','Nd7','a6'],
+  'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6':['Nc3','f3','Nd2','Bg5'],
+  'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3':['a6','g6','e6','Bd7'],
+  'e4 c5 Nf3 Nc6':['d4','Bb5','Nc3','c3'],
+  'e4 c5 Nf3 Nc6 d4':['cxd4','g6'],
+  'e4 c5 Nf3 Nc6 d4 cxd4':['Nxd4'],
+  'e4 c5 Nf3 Nc6 d4 cxd4 Nxd4':['g6','e6','Nf6','d6'],
+  'e4 c5 Nf3 e6':['d4','Nc3','d3'],
+  'e4 c5 Nf3 e6 d4':['cxd4','a6','Nc6'],
+  'e4 c5 Nf3 g6':['d4','c3','Nc3'],
+  'e4 e6':['d4','d4','d4','Nf3','Nc3'],
+  'e4 e6 d4':['d5','d5','Nf6'],
+  'e4 e6 d4 d5':['Nc3','Nd2','e5','exd5'],
+  'e4 e6 d4 d5 Nc3':['Bb4','Nf6','dxe4'],
+  'e4 e6 d4 d5 Nc3 Bb4':['e5','a3','Bd3'],
+  'e4 e6 d4 d5 Nc3 Nf6':['e5','Bg5','Bd3'],
+  'e4 e6 d4 d5 Nd2':['Nf6','c5','Nc6'],
+  'e4 e6 d4 d5 e5':['c5','Nc6','Bd7'],
+  'e4 e6 d4 d5 exd5':['exd5','Qxd5'],
+  'e4 c6':['d4','d4','d4','Nc3','Nf3'],
+  'e4 c6 d4':['d5'],
+  'e4 c6 d4 d5':['Nc3','Nd2','e5','exd5'],
+  'e4 c6 d4 d5 Nc3':['dxe4','g6','Nf6'],
+  'e4 c6 d4 d5 Nc3 dxe4':['Nxe4'],
+  'e4 c6 d4 d5 Nc3 dxe4 Nxe4':['Bf5','Nf6','Nd7'],
+  'e4 c6 d4 d5 Nd2':['dxe4','Nf6','g6'],
+  'e4 c6 d4 d5 e5':['Bf5','c5','Nd7'],
+  'e4 d5':['exd5','Nc3','d4'],
+  'e4 d5 exd5':['Qxd5','Nf6'],
+  'e4 d5 exd5 Qxd5':['Nc3'],
+  'e4 d5 exd5 Qxd5 Nc3':['Qa5','Qd6','Qd8'],
+  'e4 d5 exd5 Nf6':['d4','c4','Bb5+'],
+  'd4 d5':['c4','c4','c4','Nf3','Bf4','e3'],
+  'd4 d5 c4':['e6','c6','dxc4','Nf6','e5'],
+  'd4 d5 c4 e6':['Nc3','Nf3','cxd5'],
+  'd4 d5 c4 e6 Nc3':['Nf6','Bb4','Be7','c5'],
+  'd4 d5 c4 e6 Nc3 Nf6':['Bg5','Nf3','cxd5','e3'],
+  'd4 d5 c4 c6':['Nf3','Nc3','e3'],
+  'd4 d5 c4 c6 Nf3':['Nf6','e6','dxc4'],
+  'd4 d5 c4 c6 Nf3 Nf6':['Nc3','e3','g3'],
+  'd4 d5 c4 dxc4':['Nf3','e3','e4'],
+  'd4 d5 c4 Nf6':['cxd5','Nf3','Nc3'],
+  'd4 d5 Nf3':['Nf6','c5','e6','Bf5'],
+  'd4 d5 Bf4':['Nf6','e6','c5'],
+  'd4 Nf6':['c4','c4','c4','Nf3','Bg5','e3'],
+  'd4 Nf6 c4':['g6','e6','c5','d5'],
+  'd4 Nf6 c4 g6':['Nc3','g3','Nf3'],
+  'd4 Nf6 c4 g6 Nc3':['Bg7','d5','c5'],
+  'd4 Nf6 c4 g6 Nc3 Bg7':['e4','Nf3','g3'],
+  'd4 Nf6 c4 g6 Nc3 Bg7 e4':['d6','O-O','c5'],
+  'd4 Nf6 c4 g6 Nc3 Bg7 e4 d6':['Nf3','f3','Be2'],
+  'd4 Nf6 c4 g6 g3':['Bg7','d5','c5'],
+  'd4 Nf6 c4 e6':['Nc3','Nf3','g3'],
+  'd4 Nf6 c4 e6 Nc3':['Bb4','d5','c5'],
+  'd4 Nf6 c4 e6 Nc3 Bb4':['Qc2','e3','a3','Bg5'],
+  'd4 Nf6 c4 e6 Nf3':['b6','d5','Bb4+'],
+  'd4 Nf6 c4 d5':['Nc3','Nf3','e3'],
+  'd4 Nf6 c4 d5 Nc3':['g6','dxc4','e6'],
+  'd4 Nf6 c4 d5 Nc3 g6':['Nf3','cxd5','Bg5'],
+  'd4 Nf6 c4 c5':['d5','Nf3','Nc3'],
+  'd4 Nf6 Nf3':['e6','d5','g6','c5'],
+  'c4 e5':['Nc3','Nf3','g3','e3'],
+  'c4 e5 Nc3':['Nf6','Nc6','d6','Bb4'],
+  'c4 e5 Nf3':['Nc6','e4','d6'],
+  'c4 Nf6':['Nc3','Nf3','g3'],
+  'c4 Nf6 Nc3':['d5','e5','c5','g6'],
+  'c4 c5':['Nf3','Nc3','g3'],
+  'c4 e6':['Nc3','Nf3','g3','d4'],
+  'c4 g6':['Nc3','d4','Nf3'],
+  'Nf3 d5':['c4','g3','d4','e3'],
+  'Nf3 Nf6':['c4','g3','d4'],
+  'Nf3 c5':['c4','e3','g3'],
+  'Nf3 g6':['c4','d4','g3'],
+  'Nf3 d5 c4':['d4','e6','c6','dxc4'],
+  'Nf3 d5 g3':['c5','Nf6','Bf5'],
 };
 
-// Pick a book move if available; returns a legal SAN string or null
 function bookMove(){
   const key=sans.join(' ');
   const options=BOOK[key];
   if(!options||!options.length)return null;
-  // Shuffle candidates
   const shuffled=[...options].sort(()=>Math.random()-.5);
   const legalMvs=legal();
   for(const san of shuffled){
-    // Try to find a legal move matching this SAN
-    for(const m of legalMvs){
-      if(toSAN(m)===san)return m;
-    }
-  }
-  return null;
-}
+    for(const m of legalMvs){if(toSAN(m)===san)return m}}
+  return null}
 
 function aiPickMove(){
   const mvs=legal();if(!mvs.length)return null;
-  // Try opening book first (up to move 14)
-  if(sans.length<28){
-    const bm=bookMove();
-    if(bm)return bm;
-  }
+  if(sans.length<28){const bm=bookMove();if(bm)return bm}
   const mx=turn==='w';let bestM=null,bestS=mx?-1e9:1e9;
   mvs.sort((x,y)=>{let sx=(x.cap?PVL[x.cap.toLowerCase()]:0)+(x.promo?800:0),sy=(y.cap?PVL[y.cap.toLowerCase()]:0)+(y.promo?800:0);return sy-sx});
   for(const m of mvs){doM(m);const v=ab(aiDepth-1,-1e9,1e9,!mx);unM();if(mx?v>bestS:v<bestS){bestS=v;bestM=m}}
   if(aiDepth===1&&Math.random()<.25){bestM=mvs[Math.floor(Math.random()*Math.min(5,mvs.length))]}
   return bestM}
 
-// ── Opening Detection ─────────────────────────────────────────────────────────
+// ── Opening Detection ─────────────────────────────────────
 const OPN={
-  // --- Single moves ---
   'e4':"King's Pawn",'d4':"Queen's Pawn",'c4':'English Opening','Nf3':'Réti Opening',
-  'f4':"Bird's Opening",'b3':"Larsen's Opening",'g3':'King\'s Fianchetto',
-  // --- 1.e4 responses ---
+  'f4':"Bird's Opening",'b3':"Larsen's Opening",
   'e4 e5':'Open Game','e4 c5':'Sicilian Defense','e4 e6':'French Defense',
-  'e4 c6':'Caro-Kann Defense','e4 d5':'Scandinavian Defense','e4 Nf6':'Alekhine\'s Defense',
+  'e4 c6':'Caro-Kann Defense','e4 d5':'Scandinavian Defense','e4 Nf6':"Alekhine's Defense",
   'e4 d6':'Pirc Defense','e4 g6':'Modern Defense',
-  // --- Sicilian lines ---
   'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6':'Sicilian Najdorf',
   'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 g6':'Sicilian Dragon',
   'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 e6':'Sicilian Scheveningen',
   'e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6':'Sicilian — Open',
   'e4 c5 Nf3 Nc6 d4 cxd4 Nxd4 g6':'Sicilian Accelerated Dragon',
-  'e4 c5 Nf3 e6':'Sicilian Kan',
-  'e4 c5 Nf3 Nc6':'Sicilian Classical',
-  'e4 c5 Nf3 d6':'Sicilian Najdorf Variation',
+  'e4 c5 Nf3 e6':'Sicilian Kan','e4 c5 Nf3 Nc6':'Sicilian Classical',
   'e4 c5':'Sicilian Defense',
-  // --- Spanish / Ruy Lopez ---
   'e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7':'Ruy Lopez — Closed',
   'e4 e5 Nf3 Nc6 Bb5 a6 Bxc6':'Ruy Lopez — Exchange',
   'e4 e5 Nf3 Nc6 Bb5 a6 Ba4':'Ruy Lopez — Morphy',
   'e4 e5 Nf3 Nc6 Bb5 Nf6':'Ruy Lopez — Berlin',
   'e4 e5 Nf3 Nc6 Bb5':'Ruy Lopez',
-  // --- Italian ---
-  'e4 e5 Nf3 Nc6 Bc4 Nf6 Ng5':'Italian — Fried Liver Attack',
+  'e4 e5 Nf3 Nc6 Bc4 Nf6 Ng5':'Italian — Fried Liver',
   'e4 e5 Nf3 Nc6 Bc4 Bc5 c3':'Italian — Giuoco Piano',
   'e4 e5 Nf3 Nc6 Bc4 Bc5':'Italian Game',
   'e4 e5 Nf3 Nc6 Bc4 Nf6':'Two Knights Defense',
   'e4 e5 Nf3 Nc6 Bc4':'Italian Game',
-  // --- Scotch ---
   'e4 e5 Nf3 Nc6 d4 exd4 Nxd4 Bc5':'Scotch Gambit',
   'e4 e5 Nf3 Nc6 d4 exd4 Nxd4':'Scotch Game',
   'e4 e5 Nf3 Nc6 d4':'Scotch Game',
-  // --- Petrov ---
-  'e4 e5 Nf3 Nf6 Nxe5':'Petrov Defense',
-  'e4 e5 Nf3 Nf6':'Petrov Defense',
-  // --- King's Gambit ---
-  'e4 e5 f4 exf4 Nf3':'King\'s Gambit — Accepted',
-  'e4 e5 f4 exf4':'King\'s Gambit — Accepted',
-  'e4 e5 f4':'King\'s Gambit',
-  // --- French lines ---
+  'e4 e5 Nf3 Nf6 Nxe5':'Petrov Defense','e4 e5 Nf3 Nf6':'Petrov Defense',
+  'e4 e5 f4 exf4 Nf3':"King's Gambit Accepted",
+  'e4 e5 f4 exf4':"King's Gambit Accepted",'e4 e5 f4':"King's Gambit",
   'e4 e6 d4 d5 Nc3 Bb4':'French — Winawer',
   'e4 e6 d4 d5 Nc3 Nf6 Bg5':'French — Classical',
-  'e4 e6 d4 d5 Nc3':'French — Winawer / Classical',
+  'e4 e6 d4 d5 Nc3':'French — Winawer/Classical',
   'e4 e6 d4 d5 Nd2':'French — Tarrasch',
   'e4 e6 d4 d5 e5':'French — Advance',
-  'e4 e6 d4':'French — Main Line',
-  // --- Caro-Kann lines ---
+  'e4 e6 d4':'French Defense',
   'e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5':'Caro-Kann — Classical',
   'e4 c6 d4 d5 Nc3 dxe4 Nxe4':'Caro-Kann — Classical',
   'e4 c6 d4 d5 Nc3':'Caro-Kann — Main Line',
   'e4 c6 d4 d5 e5':'Caro-Kann — Advance',
-  'e4 c6 d4 d5 exd5 cxd5 c4':'Caro-Kann — Panov Attack',
-  'e4 c6 d4':'Caro-Kann — Main Line',
-  // --- Scandinavian lines ---
-  'e4 d5 exd5 Qxd5 Nc3 Qa5':'Scandinavian — Mieses-Kotroc',
+  'e4 c6 d4':'Caro-Kann Defense',
+  'e4 d5 exd5 Qxd5 Nc3 Qa5':'Scandinavian — Mieses',
   'e4 d5 exd5 Qxd5 Nc3':'Scandinavian Defense',
-  'e4 d5 exd5 Nf6 d4 Nxd5 Nf3':'Scandinavian — Icelandic Gambit',
   'e4 d5 exd5':'Scandinavian Defense',
-  // --- Queen's Gambit ---
   'd4 d5 c4 e6 Nc3 Nf6 Bg5 Be7':'QGD — Orthodox',
   'd4 d5 c4 e6 Nc3 Nf6 Bg5':'QGD — Classical',
-  'd4 d5 c4 e6 Nc3':'Queen\'s Gambit Declined',
+  'd4 d5 c4 e6 Nc3':"Queen's Gambit Declined",
   'd4 d5 c4 e6':'QGD',
-  'd4 d5 c4 c6 Nf3 Nf6 Nc3':'Slav Defense — Main Line',
+  'd4 d5 c4 c6 Nf3 Nf6 Nc3':'Slav — Main Line',
   'd4 d5 c4 c6 Nf3':'Slav Defense',
   'd4 d5 c4 c6':'Slav Defense',
-  'd4 d5 c4 dxc4 Nf3':'Queen\'s Gambit Accepted',
-  'd4 d5 c4 dxc4':'Queen\'s Gambit Accepted',
+  'd4 d5 c4 dxc4 Nf3':"Queen's Gambit Accepted",
+  'd4 d5 c4 dxc4':"Queen's Gambit Accepted",
   'd4 d5 c4':"Queen's Gambit",
-  // --- King's Indian ---
-  'd4 Nf6 c4 g6 Nc3 Bg7 e4 d6 Nf3':'King\'s Indian — Main Line',
-  'd4 Nf6 c4 g6 Nc3 Bg7 e4 d6':'King\'s Indian — Main Line',
-  'd4 Nf6 c4 g6 Nc3 Bg7 e4':'King\'s Indian Defense',
-  'd4 Nf6 c4 g6 Nc3':'King\'s Indian Defense',
+  'd4 Nf6 c4 g6 Nc3 Bg7 e4 d6 Nf3':"King's Indian — Main Line",
+  'd4 Nf6 c4 g6 Nc3 Bg7 e4 d6':"King's Indian — Main Line",
+  'd4 Nf6 c4 g6 Nc3 Bg7 e4':"King's Indian Defense",
+  'd4 Nf6 c4 g6 Nc3':"King's Indian Defense",
   'd4 Nf6 c4 g6':"King's Indian Defense",
-  // --- Nimzo-Indian ---
   'd4 Nf6 c4 e6 Nc3 Bb4 e3':'Nimzo-Indian — Rubinstein',
   'd4 Nf6 c4 e6 Nc3 Bb4 Qc2':'Nimzo-Indian — Classical',
   'd4 Nf6 c4 e6 Nc3 Bb4':'Nimzo-Indian Defense',
-  'd4 Nf6 c4 e6 Nc3':'Nimzo-Indian Defense',
-  // --- Queen's Indian ---
-  'd4 Nf6 c4 e6 Nf3 b6':'Queen\'s Indian Defense',
-  'd4 Nf6 c4 e6':'Queen\'s Indian / Nimzo',
-  // --- Grünfeld ---
+  'd4 Nf6 c4 e6 Nf3 b6':"Queen's Indian Defense",
   'd4 Nf6 c4 d5 Nc3 g6 cxd5':'Grünfeld — Exchange',
   'd4 Nf6 c4 d5 Nc3 g6':'Grünfeld Defense',
   'd4 Nf6 c4 d5 Nc3':'Grünfeld Defense',
-  // --- Benoni ---
   'd4 Nf6 c4 c5 d5 e6':'Modern Benoni',
   'd4 Nf6 c4 c5 d5':'Benoni Defense',
-  // --- English lines ---
   'c4 e5 Nc3 Nf6':'English — Four Knights',
   'c4 e5 Nc3':'English — Reversed Sicilian',
-  'c4 e5':'English Opening',
-  'c4 Nf6 Nc3 d5 cxd5 Nxd5 g3':'English — Symmetrical',
-  'c4 c5':'Symmetrical English',
-  // --- Réti ---
+  'c4 e5':'English Opening','c4 c5':'Symmetrical English',
   'Nf3 d5 c4 e6':'Réti — QGD Style',
-  'Nf3 d5 c4':'Réti Opening',
-  'Nf3 Nf6 c4':'Réti Opening',
+  'Nf3 d5 c4':'Réti Opening','Nf3 Nf6 c4':'Réti Opening',
 };
 
 function getOpening(){
   const keys=Object.keys(OPN).sort((a,b)=>b.length-a.length);
   const line=sans.join(' ');
   for(const k of keys)if(line.startsWith(k))return OPN[k];
-  return sans.length?'Unknown Opening':'Starting Position'
+  return sans.length?'—':'Starting Position'}
+
+// ═══ SOUND ENGINE ═══
+const SND={
+  move:    new Audio('assets/move.mp3'),
+  capture: new Audio('assets/capture.mp3'),
+  knight:  new Audio('assets/knight.mp3'),
+  notify:  new Audio('assets/notify.mp3')
+};
+Object.values(SND).forEach(a=>{a.volume=0.85;a.load();});
+function playSound(type){
+  const a=SND[type];if(!a)return;
+  a.currentTime=0;a.play().catch(()=>{});}
+
+// ═══════════════════════════════════════════════════════════
+//  PIECE RENDERING — real Staunton SVG paths
+//  White: white fill, dark outline + detail lines
+//  Black: dark fill, dark outline, WHITE detail lines (shows structure)
+// ═══════════════════════════════════════════════════════════
+let animTarget=null;
+
+function pieceSVG(piece,animate){
+  const w=isW(piece);
+  const t=piece.toLowerCase();
+  const f =w?'#ffffff':'#1a1208'; // fill
+  const o ='#1a1208';             // outline stroke (same for both)
+  const d =w?'#1a1208':'#e8d5b0'; // detail lines: dark on white, warm light on black
+  const sw=1.5;
+  const cls='piece-svg'+(animate?' piece-anim':'');
+
+  // Shared base layers (two stepped rects at bottom)
+  const base=(x1,w2,y1=35.5)=>`
+    <rect x="${x1}" y="${y1}" width="${w2}" height="2.5" rx="0.5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+    <rect x="${x1-2}" y="${y1+2.5}" width="${w2+4}" height="3" rx="0.5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>`;
+
+  let body='';
+
+  if(t==='p'){
+    // Pawn: ball head → bell body → 2-step base
+    body=`
+      <ellipse cx="22.5" cy="12" rx="5" ry="5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <path d="M 17,35 C 17,30 17,26 19,21 C 20,18.5 22.5,17 22.5,17 C 22.5,17 25,18.5 26,21 C 28,26 28,30 28,35 Z"
+            fill="${f}" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/>
+      ${base(15,15)}`;
+
+  }else if(t==='r'){
+    // Rook: three merlons + tower + detail lines
+    body=`
+      <rect x="10"   y="10" width="6" height="7" rx="0.5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <rect x="19.5" y="10" width="6" height="7" rx="0.5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <rect x="29"   y="10" width="6" height="7" rx="0.5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <path d="M 10,17 L 10,35 L 35,35 L 35,17 Z" fill="${f}" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/>
+      <line x1="10" y1="22" x2="35" y2="22" stroke="${d}" stroke-width="1"/>
+      <line x1="10" y1="27" x2="35" y2="27" stroke="${d}" stroke-width="1"/>
+      <line x1="10" y1="32" x2="35" y2="32" stroke="${d}" stroke-width="1"/>
+      ${base(8,29)}`;
+
+  }else if(t==='n'){
+    // Knight: horse-head profile (faces right), ear, eye, mane, neck
+    body=`
+      <path d="M 15.5,38 L 15.5,33.5
+               C 12,32 10.5,28 12,25
+               C 13,22 15,21 15,18
+               C 15,15 17,12 21,11
+               C 23,10.5 25.5,11 27.5,12.5
+               C 29.5,14 29,16.5 28,18
+               C 27.5,19 27,20 28,21
+               C 30,24 31,28 30,33.5
+               L 30,38 Z"
+            fill="${f}" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/>
+      <path d="M 21,11 C 19,11.5 17.5,13 18,15 C 17.5,13.5 20,12.5 22,12.5 Z"
+            fill="${d}" stroke="none"/>
+      <circle cx="25.5" cy="13.5" r="1.5" fill="${d}"/>
+      <path d="M 14,26 C 14,23 16,20.5 17.5,20 C 16.5,22 15.5,24.5 15.5,26 Z"
+            fill="${d}" stroke="none"/>
+      <path d="M 15.5,33.5 C 18,31 27,31 30,33.5" stroke="${d}" stroke-width="1" fill="none"/>
+      ${base(13,19,36)}`;
+
+  }else if(t==='b'){
+    // Bishop: ball + pointed mitre body + detail lines + notch
+    body=`
+      <circle cx="22.5" cy="10" r="3.5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <path d="M 22.5,13.5
+               C 19,16 15.5,21 15.5,28
+               C 15.5,31.5 18,34 22.5,35
+               C 27,34 29.5,31.5 29.5,28
+               C 29.5,21 26,16 22.5,13.5 Z"
+            fill="${f}" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/>
+      <path d="M 15.5,28 C 16,26 29,26 29.5,28" stroke="${d}" stroke-width="1" fill="none"/>
+      <path d="M 16.5,22 C 18,20.5 27,20.5 28.5,22" stroke="${d}" stroke-width="1" fill="none"/>
+      <line x1="20" y1="13.5" x2="25" y2="13.5" stroke="${d}" stroke-width="1"/>
+      ${base(14,17)}`;
+
+  }else if(t==='q'){
+    // Queen: 5 balls across top + flowing body + waist detail
+    body=`
+      <circle cx="10.5" cy="16" r="3.5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <circle cx="17"   cy="12" r="3.5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <circle cx="22.5" cy="10.5" r="3.5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <circle cx="28"   cy="12" r="3.5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <circle cx="34.5" cy="16" r="3.5" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <path d="M 10.5,16 C 11,25 12,27.5 11,34
+               C 14,36.5 31,36.5 34,34
+               C 33,27.5 34,25 34.5,16
+               L 28,12 L 22.5,11 L 17,12 Z"
+            fill="${f}" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/>
+      <path d="M 11,34 C 14,32 31,32 34,34" stroke="${d}" stroke-width="1" fill="none"/>
+      <path d="M 12,28 C 16,26 29,26 33,28" stroke="${d}" stroke-width="1" fill="none"/>
+      <path d="M 13,22 C 17,20.5 28,20.5 32,22" stroke="${d}" stroke-width="1" fill="none"/>
+      ${base(9,27,36)}`;
+
+  }else if(t==='k'){
+    // King: cross + 5-ball crown + queen-style body
+    body=`
+      <line x1="22.5" y1="5"  x2="22.5" y2="12" stroke="${o}" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="19"   y1="8"  x2="26"   y2="8"  stroke="${o}" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="10.5" cy="17" r="3.2" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <circle cx="17"   cy="13" r="3.2" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <circle cx="22.5" cy="12" r="3.2" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <circle cx="28"   cy="13" r="3.2" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <circle cx="34.5" cy="17" r="3.2" fill="${f}" stroke="${o}" stroke-width="${sw}"/>
+      <path d="M 10.5,17 C 11,25.5 12,28 11,35
+               C 14,37.5 31,37.5 34,35
+               C 33,28 34,25.5 34.5,17
+               L 28,13 L 22.5,12 L 17,13 Z"
+            fill="${f}" stroke="${o}" stroke-width="${sw}" stroke-linejoin="round"/>
+      <path d="M 11,35 C 14,33 31,33 34,35" stroke="${d}" stroke-width="1" fill="none"/>
+      <path d="M 12,29 C 16,27 29,27 33,29" stroke="${d}" stroke-width="1" fill="none"/>
+      <path d="M 13,23 C 17,21.5 28,21.5 32,23" stroke="${d}" stroke-width="1" fill="none"/>
+      ${base(9,27,37)}`;
+  }
+
+  return `<svg class="${cls}" viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
 }
 
+// ═══════════════════════════════════════════════════════════
+//  BOARD BUILDING & RENDERING
+// ═══════════════════════════════════════════════════════════
 function buildBoard(){
-const b=document.getElementById('board');b.innerHTML='';
-for(let i=0;i<64;i++){const sq=document.createElement('div');sq.className='sq';sq.addEventListener('click',()=>onClick(i));const sp=document.createElement('span');sp.className='piece';sq.appendChild(sp);b.appendChild(sq)}}
+  const b=document.getElementById('board');b.innerHTML='';
+  for(let i=0;i<64;i++){
+    const sq=document.createElement('div');
+    sq.className='sq';
+    sq.addEventListener('click',()=>onClick(i));
+    b.appendChild(sq);}}
 
 function render(){
-const b=document.getElementById('board');const sqs=b.children;
-const lg=(!gameOver&&!thinking&&turn===playerCol)?legal():[];
-const selM=sel?lg.filter(m=>m.fr===sel[0]&&m.fc===sel[1]):[];
-const lastH=hist.length?hist[hist.length-1].m:null;
-const chk=inChk()?fK(brd,turn):null;
-for(let i=0;i<64;i++){
-const vr=flipped?7-Math.floor(i/8):Math.floor(i/8),vc=flipped?7-(i%8):i%8;
-const sq=sqs[i];let cls='sq '+((vr+vc)%2===0?'light':'dark');
-if(sel&&sel[0]===vr&&sel[1]===vc)cls+=' selected';
-if(lastH&&((lastH.fr===vr&&lastH.fc===vc)||(lastH.tr===vr&&lastH.tc===vc)))cls+=' last';
-if(chk&&chk[0]===vr&&chk[1]===vc)cls+=' check';
-const isLeg=selM.some(m=>m.tr===vr&&m.tc===vc);
-if(isLeg)cls+=brd[vr][vc]?' can-capture':' can-move';
-sq.className=cls;sq.dataset.r=vr;sq.dataset.c=vc;
-const p=brd[vr][vc];
-const pieceSpan=sq.children[0];
-// Set piece symbol and color class
-if(p){
-  pieceSpan.textContent=P[p];
-  pieceSpan.className='piece '+(isW(p)?'piece-w':'piece-b');
-}else{
-  pieceSpan.textContent='';
-  pieceSpan.className='piece';
-}}
-updateInfo()}
+  const b=document.getElementById('board');
+  const sqs=b.children;
+  const lg=(!gameOver&&!thinking&&turn===playerCol)?legal():[];
+  const selM=sel?lg.filter(m=>m.fr===sel[0]&&m.fc===sel[1]):[];
+  const lastH=hist.length?hist[hist.length-1].m:null;
+  const chk=inChk()?fK(brd,turn):null;
+
+  for(let i=0;i<64;i++){
+    const vr=flipped?7-Math.floor(i/8):Math.floor(i/8);
+    const vc=flipped?7-(i%8):i%8;
+    const sq=sqs[i];
+
+    // Square color
+    const isLight=(vr+vc)%2===0;
+    let cls='sq '+(isLight?'light':'dark');
+
+    // Highlights
+    if(sel&&sel[0]===vr&&sel[1]===vc) cls+=' selected';
+    if(lastH){
+      if(lastH.fr===vr&&lastH.fc===vc) cls+=' last-from';
+      if(lastH.tr===vr&&lastH.tc===vc) cls+=' last-to';
+    }
+    if(chk&&chk[0]===vr&&chk[1]===vc) cls+=' check';
+    const isLeg=selM.some(m=>m.tr===vr&&m.tc===vc);
+    if(isLeg) cls+=brd[vr][vc]?' can-capture':' can-move';
+    sq.className=cls;sq.dataset.r=vr;sq.dataset.c=vc;
+
+    // Content: piece + coordinate labels
+    const p=brd[vr][vc];
+    const leftEdge=(i%8===0);
+    const bottomEdge=(Math.floor(i/8)===7);
+    const rank=flipped?vr+1:8-vr;
+    const file=FILES[vc];
+
+    let html=p?pieceSVG(p, animTarget!==null && vr===animTarget[0] && vc===animTarget[1]):'';
+    if(leftEdge)  html+=`<span class="coord rank">${rank}</span>`;
+    if(bottomEdge)html+=`<span class="coord file">${file}</span>`;
+    sq.innerHTML=html;
+  }
+  updateInfo();}
+
+function materialAdv(){
+  let wMat=0,bMat=0;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=brd[r][c];if(!p)continue;
+    const v=PVL[p.toLowerCase()];
+    if(p==='K'||p==='k')continue;
+    if(isW(p))wMat+=v;else bMat+=v;}
+  return{w:wMat,b:bMat};}
 
 function updateInfo(){
-const e=ev()/100;
-const pct=Math.max(2,Math.min(98,50+e*2.5));
-document.getElementById('evalFill').style.height=pct+'%';
-document.getElementById('evalNum').textContent=(e>=0?'+':'')+e.toFixed(1);
+  // Eval bar
+  const e=ev()/100;
+  const pct=Math.max(2,Math.min(98,50+e*2.5));
+  document.getElementById('evalFill').style.height=pct+'%';
+  document.getElementById('evalNum').textContent=(e>=0?'+':'')+e.toFixed(1);
 
-const op=getOpening();
-document.getElementById('opening').textContent=op||'—';
+  // Opening
+  document.getElementById('opening').textContent=getOpening()||'—';
 
-let capW=[],capB=[];
-for(const h of hist){if(h.m.cap){if(isW(h.m.cap))capW.push(h.m.cap);else capB.push(h.m.cap)}}
-const order='qrbnp';
-capW.sort((a,b)=>order.indexOf(a.toLowerCase())-order.indexOf(b.toLowerCase()));
-capB.sort((a,b)=>order.indexOf(a.toLowerCase())-order.indexOf(b.toLowerCase()));
-document.getElementById('capW').textContent=capB.map(x=>P[x]).join('');
-document.getElementById('capB').textContent=capW.map(x=>P[x]).join('');
+  // Captured pieces + material advantage
+  let capW=[],capB=[];
+  for(const h of hist){
+    if(h.m.cap){if(isW(h.m.cap))capW.push(h.m.cap);else capB.push(h.m.cap)}}
+  const order='qrbnp';
+  capW.sort((a,b)=>order.indexOf(a.toLowerCase())-order.indexOf(b.toLowerCase()));
+  capB.sort((a,b)=>order.indexOf(a.toLowerCase())-order.indexOf(b.toLowerCase()));
 
-let ml='';
-for(let i=0;i<sans.length;i+=2){
-const n=Math.floor(i/2)+1;
-ml+=`<div class="mrow"><span class="mnum">${n}.</span><span class="mv">${sans[i]}</span>`;
-if(sans[i+1])ml+=`<span class="mv">${sans[i+1]}</span>`;
-ml+='</div>'}
-document.getElementById('moveList').innerHTML=ml;
-const mlc=document.querySelector('.move-list');if(mlc)mlc.scrollTop=mlc.scrollHeight;
+  // capW = white pieces captured (shown under black player)
+  // capB = black pieces captured (shown under white player)
+  const wGlyphs={K:'♔',Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙'};
+  const bGlyphs={k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+  document.getElementById('capW').textContent=capW.map(x=>wGlyphs[x]||'').join('');
+  document.getElementById('capB').textContent=capB.map(x=>bGlyphs[x]||'').join('');
 
-if(gameOver){document.getElementById('status').textContent=gameOver}
-else if(thinking){
-  document.getElementById('status').innerHTML='AI thinking <span class="thinking-dots"><span>●</span><span>●</span><span>●</span></span>';
-}else{document.getElementById('status').textContent=(turn==='w'?'White':'Black')+' to move'+(inChk()?' ⚠️ Check!':'')}}
+  // Material advantage display
+  const{w,b}=materialAdv();
+  const diff=w-b;
+  document.getElementById('advW').textContent=diff>0?`+${Math.round(diff/100)}`:'';
+  document.getElementById('advB').textContent=diff<0?`+${Math.round(-diff/100)}`:'';
 
+  // Move list
+  let ml='';
+  for(let i=0;i<sans.length;i+=2){
+    const n=Math.floor(i/2)+1;
+    const isCur=i===sans.length-1||i===sans.length-2;
+    ml+=`<div class="mrow"><span class="mnum">${n}.</span>`;
+    ml+=`<span class="mv${i===sans.length-2&&sans.length%2===0?'':''}">${sans[i]}</span>`;
+    if(sans[i+1])ml+=`<span class="mv">${sans[i+1]}</span>`;
+    ml+='</div>';}
+  document.getElementById('moveList').innerHTML=ml;
+  const mlc=document.querySelector('.move-list');
+  if(mlc)mlc.scrollTop=mlc.scrollHeight;
+
+  // Status
+  const hdrEl=document.getElementById('hdrStatus');
+  if(gameOver){
+    document.getElementById('status').textContent=gameOver;
+    hdrEl.textContent='GAME OVER';hdrEl.style.color='#f38ba8';
+  }else if(thinking){
+    document.getElementById('status').innerHTML=
+      `AI thinking <span class="thinking-dots"><span>●</span><span>●</span><span>●</span></span>`;
+    hdrEl.textContent='THINKING';hdrEl.style.color='#fab387';
+  }else{
+    const toMove=(turn==='w'?'White':'Black')+' to move';
+    const chkStr=inChk()?' ⚠ Check!':'';
+    document.getElementById('status').textContent=toMove+chkStr;
+    hdrEl.textContent=turn==='w'?'WHITE':'BLACK';
+    hdrEl.style.color=turn==='w'?'#cdd6f4':'#89dceb';}}
+
+// ═══════════════════════════════════════════════════════════
+//  INTERACTION
+// ═══════════════════════════════════════════════════════════
 function onClick(i){
-if(gameOver||thinking||turn!==playerCol)return;
-const sq=document.getElementById('board').children[i];
-const r=+sq.dataset.r,c=+sq.dataset.c;
-if(sel){
-const lg=legal().filter(m=>m.fr===sel[0]&&m.fc===sel[1]&&m.tr===r&&m.tc===c);
-if(lg.length>1&&lg[0].promo){showPromo(lg);return}
-if(lg.length===1){makeMove(lg[0]);return}
-if(brd[r][c]&&col(brd[r][c],turn)){sel=[r,c];render();return}
-sel=null;render();return}
-if(brd[r][c]&&col(brd[r][c],turn)){sel=[r,c];render()}}
+  if(gameOver||thinking||turn!==playerCol)return;
+  // Wake AudioContext on first user gesture
+  try{ac()}catch(e){}
+  const sq=document.getElementById('board').children[i];
+  const r=+sq.dataset.r,c=+sq.dataset.c;
+  if(sel){
+    const lg=legal().filter(m=>m.fr===sel[0]&&m.fc===sel[1]&&m.tr===r&&m.tc===c);
+    if(lg.length>1&&lg[0].promo){showPromo(lg);return}
+    if(lg.length===1){makeMove(lg[0]);return}
+    if(brd[r][c]&&col(brd[r][c],turn)){sel=[r,c];render();return}
+    sel=null;render();return}
+  if(brd[r][c]&&col(brd[r][c],turn)){sel=[r,c];render()}}
 
 function showPromo(moves){
-const d=document.getElementById('promoModal');d.classList.remove('hidden');
-const btns=document.getElementById('promoBtns');btns.innerHTML='';
-for(const m of moves){
-const b=document.createElement('button');
-const pp=turn==='w'?m.promo.toUpperCase():m.promo;
-b.textContent=P[pp];
-b.onclick=()=>{d.classList.add('hidden');makeMove(m)};
-btns.appendChild(b)}}
+  const d=document.getElementById('promoModal');d.classList.remove('hidden');
+  const btns=document.getElementById('promoBtns');btns.innerHTML='';
+  const glyphs={Q:'♛',R:'♜',B:'♝',N:'♞',q:'♛',r:'♜',b:'♝',n:'♞'};
+  for(const m of moves){
+    const btn=document.createElement('button');
+    const pp=turn==='w'?m.promo.toUpperCase():m.promo;
+    btn.textContent=glyphs[pp]||m.promo.toUpperCase();
+    btn.onclick=()=>{d.classList.add('hidden');makeMove(m)};
+    btns.appendChild(btn);}}
 
 function makeMove(m){
-const san=toSAN(m);
-doM(m);sans.push(san);sel=null;
-const lg=legal();
-if(!lg.length){
-gameOver=inChk()?((turn==='w'?'Black':'White')+' wins by checkmate! 🏆'):'Draw by stalemate';
-render();showResult();return}
-if(halfm>=100){gameOver='Draw by 50-move rule';render();showResult();return}
-render();
-if(turn!==playerCol&&!gameOver){
-  thinking=true;
-  render(); // show thinking indicator immediately
-  // 3–4 second human-like delay
-  const delay=3000+Math.floor(Math.random()*1000);
-  setTimeout(doAI,delay);
-}}
+  const san=toSAN(m);
+  const wasCap=!!m.cap;
+  const wasCastle=m.fl==='ck'||m.fl==='cq';
+  const wasKnight=m.p.toLowerCase()==='n';
+  doM(m);sans.push(san);sel=null;
+  animTarget=[m.tr,m.tc];
+
+  // Sound: knight overrides everything except capture
+  if(wasCap) playSound('capture');
+  else if(wasKnight) playSound('knight');
+  else if(wasCastle) playSound('move');
+  else playSound('move');
+  if(inChk()) setTimeout(()=>playSound('notify'),140);
+
+  const lg=legal();
+  if(!lg.length){
+    gameOver=inChk()?((turn==='w'?'Black':'White')+' wins by checkmate! \uD83C\uDFC6'):'Draw by stalemate';
+    render();animTarget=null;setTimeout(()=>playSound('notify'),200);showResult();return}
+  if(halfm>=100){gameOver='Draw by 50-move rule';render();animTarget=null;showResult();return}
+  render();animTarget=null;
+  if(turn!==playerCol&&!gameOver){
+    thinking=true;render();
+    const delay=3000+Math.floor(Math.random()*1200);
+    setTimeout(doAI,delay);}}
 
 function doAI(){
-const m=aiPickMove();
-if(m){const san=toSAN(m);doM(m);sans.push(san);
-const lg=legal();
-if(!lg.length){gameOver=inChk()?((turn==='w'?'Black':'White')+' wins by checkmate! 🏆'):'Draw by stalemate';render();showResult();thinking=false;return}
-if(halfm>=100){gameOver='Draw by 50-move rule';render();showResult();thinking=false;return}}
-thinking=false;render()}
+  const m=aiPickMove();
+  if(m){
+    const san=toSAN(m);
+    const wasCap=!!m.cap;
+    const wasCastle=m.fl==='ck'||m.fl==='cq';
+    const wasKnight=m.p.toLowerCase()==='n';
+    doM(m);sans.push(san);
+    animTarget=[m.tr,m.tc];
+
+    if(wasCap) playSound('capture');
+    else if(wasKnight) playSound('knight');
+    else playSound('move');
+    if(inChk()) setTimeout(()=>playSound('notify'),140);
+
+    const lg=legal();
+    if(!lg.length){
+      gameOver=inChk()?((turn==='w'?'Black':'White')+' wins by checkmate! \uD83C\uDFC6'):'Draw by stalemate';
+      render();animTarget=null;setTimeout(()=>playSound('notify'),200);showResult();thinking=false;return}
+    if(halfm>=100){gameOver='Draw by 50-move rule';render();animTarget=null;showResult();thinking=false;return}}
+  thinking=false;render();animTarget=null;}
 
 function showResult(){
-document.getElementById('resultTitle').textContent=gameOver.includes('wins')?'♛ Checkmate!':'🤝 Draw';
-document.getElementById('resultMsg').textContent=gameOver;
-document.getElementById('resultModal').classList.remove('hidden')}
+  document.getElementById('resultTitle').textContent=
+    gameOver.includes('wins')?'Checkmate!':'Draw';
+  document.getElementById('resultMsg').textContent=gameOver;
+  document.getElementById('resultModal').classList.remove('hidden')}
 
 function undo(){
-if(gameOver||thinking||hist.length<2)return;
-unM();sans.pop();unM();sans.pop();sel=null;render()}
+  if(gameOver||thinking||hist.length<2)return;
+  unM();sans.pop();unM();sans.pop();sel=null;render()}
 
 function flipBoard(){flipped=!flipped;render()}
 function playAsWhite(){playerCol='w';flipped=false;newGame()}
 function playAsBlack(){playerCol='b';flipped=true;newGame()}
-function newGame(){init();playerCol=playerCol||'w';buildBoard();render();if(turn!==playerCol){thinking=true;render();setTimeout(()=>{doAI()},3000+Math.floor(Math.random()*1000))}}
 
+function newGame(){
+  init();playerCol=playerCol||'w';
+  buildBoard();render();
+  setTimeout(()=>playSound('notify'),100);
+  if(turn!==playerCol){
+    thinking=true;render();
+    setTimeout(()=>doAI(),3000+Math.floor(Math.random()*1000));}}
+
+// ═══════════════════════════════════════════════════════════
+//  RESIZE — bigger board, uses more viewport
+// ═══════════════════════════════════════════════════════════
 function resize(){
-const ba=document.querySelector('.board-area');
-const hdr=document.querySelector('header');
-const avH=window.innerHeight-hdr.offsetHeight-24;
-const avW=window.innerWidth<600?window.innerWidth-52:Math.min(window.innerWidth*0.55,avH);
-const sz=Math.min(avH,avW);
-const b=document.getElementById('board');b.style.width=sz+'px';b.style.height=sz+'px';
-document.querySelector('.eval-bar').style.height=sz+'px'}
+  const hdr=document.querySelector('header');
+  const avH=window.innerHeight-hdr.offsetHeight-20;
+  // leave ~220px for sidebar on desktop
+  const sideW=230;
+  const avW=window.innerWidth<640
+    ?window.innerWidth-44
+    :window.innerWidth-sideW-52;
+  const sz=Math.min(avH,avW);
+  const b=document.getElementById('board');
+  b.style.width=sz+'px';b.style.height=sz+'px';
+  document.querySelector('.eval-bar').style.height=sz+'px';}
 
-playerCol='w';flipped=false;init();buildBoard();
+// ── Boot ──────────────────────────────────────────────────
+playerCol='w';flipped=false;
+init();buildBoard();
 window.addEventListener('resize',resize);
-setTimeout(resize,0);render();
+setTimeout(resize,0);
+render();
 </script>
 </body>
 </html>
